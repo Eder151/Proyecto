@@ -1,0 +1,61 @@
+import random
+
+símbolos = ['🍒', '🍋', '🍊', '🍉', '⭐', '💎']
+
+def girar_ruedas():
+    rueda_1 = random.choice(símbolos)
+    rueda_2 = random.choice(símbolos)
+    rueda_3 = random.choice(símbolos)
+    
+    return rueda_1, rueda_2, rueda_3
+
+def verificar_ganancia(ruedas):
+    if ruedas[0] == ruedas[1] == ruedas[2]:
+        return True
+    return False
+
+def calcular_premio(ruedas):
+    if ruedas[0] == ruedas[1] == ruedas[2]:
+        return 10
+    elif ruedas[0] == ruedas[1] or ruedas[1] == ruedas[2] or ruedas[0] == ruedas[2]:
+        return 2
+    else:
+        return 0
+
+def jugar_tragamonedas():
+    saldo = 100  # Saldo inicial del jugador
+    print("¡Bienvenido a la máquina tragamonedas!")
+    print(f"Tu saldo inicial es: ${saldo}\n")
+    
+    while saldo > 0:
+        print(f"Saldo actual: ${saldo}")
+        
+        apuesta = int(input("¿Cuánto deseas apostar? (ingresa un monto): "))
+        
+        if apuesta > saldo:
+            print("No tienes suficiente saldo para realizar esa apuesta.")
+            continue
+        
+        jugar = input("Presiona 's' para girar las ruedas o cualquier otra tecla para salir: ").lower()
+        
+        if jugar != 's':
+            print("Gracias por jugar. ¡Hasta la próxima!")
+            break
+
+        ruedas = girar_ruedas()
+        print(f"\n{ruedas[0]} | {ruedas[1]} | {ruedas[2]}")
+        
+        premio = calcular_premio(ruedas)
+        
+        if premio > 0:
+            saldo += apuesta * (premio - 1)  
+            print(f"¡Felicidades! Has ganado ${apuesta * (premio - 1)}. Saldo actual: ${saldo}")
+        else:
+            saldo -= apuesta
+            print(f"No has ganado. Has perdido ${apuesta}. Saldo actual: ${saldo}")
+        
+        if saldo <= 0:
+            print("¡Te has quedado sin saldo! Gracias por jugar.")
+            break
+
+jugar_tragamonedas()
