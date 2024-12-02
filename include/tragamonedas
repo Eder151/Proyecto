@@ -1,61 +1,83 @@
-import random
+'use client'
 
-símbolos = ['🍒', '🍋', '🍊', '🍉', '⭐', '💎']
+import React, { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Reel } from '@/components/reel'
 
-def girar_ruedas():
-    rueda_1 = random.choice(símbolos)
-    rueda_2 = random.choice(símbolos)
-    rueda_3 = random.choice(símbolos)
-    
-    return rueda_1, rueda_2, rueda_3
+const SYMBOLS = ['cherry', 'lemon', 'orange', 'grape', 'bell', 'seven']
 
-def verificar_ganancia(ruedas):
-    if ruedas[0] == ruedas[1] == ruedas[2]:
-        return True
-    return False
+export default function SlotMachine() {
+  const [reels, setReels] = useState(['cherry', 'cherry', 'cherry'])
+  const [balance, setBalance] = useState(100)
+  const [message, setMessage] = useState('')
+  const [isSpinning, setIsSpinning] = useState(false)
 
-def calcular_premio(ruedas):
-    if ruedas[0] == ruedas[1] == ruedas[2]:
-        return 10
-    elif ruedas[0] == ruedas[1] or ruedas[1] == ruedas[2] or ruedas[0] == ruedas[2]:
-        return 2
-    else:
-        return 0
+  const spin = () => {
+    if (balance < 10) {
+      setMessage('No tienes suficiente saldo para jugar.')
+      return
+    }
 
-def jugar_tragamonedas():
-    saldo = 100  # Saldo inicial del jugador
-    print("¡Bienvenido a la máquina tragamonedas!")
-    print(f"Tu saldo inicial es: ${saldo}\n")
-    
-    while saldo > 0:
-        print(f"Saldo actual: ${saldo}")
-        
-        apuesta = int(input("¿Cuánto deseas apostar? (ingresa un monto): "))
-        
-        if apuesta > saldo:
-            print("No tienes suficiente saldo para realizar esa apuesta.")
-            continue
-        
-        jugar = input("Presiona 's' para girar las ruedas o cualquier otra tecla para salir: ").lower()
-        
-        if jugar != 's':
-            print("Gracias por jugar. ¡Hasta la próxima!")
-            break
+    setIsSpinning(true)
+    setBalance(balance - 10)
 
-        ruedas = girar_ruedas()
-        print(f"\n{ruedas[0]} | {ruedas[1]} | {ruedas[2]}")
-        
-        premio = calcular_premio(ruedas)
-        
-        if premio > 0:
-            saldo += apuesta * (premio - 1)  
-            print(f"¡Felicidades! Has ganado ${apuesta * (premio - 1)}. Saldo actual: ${saldo}")
-        else:
-            saldo -= apuesta
-            print(f"No has ganado. Has perdido ${apuesta}. Saldo actual: ${saldo}")
-        
-        if saldo <= 0:
-            print("¡Te has quedado sin saldo! Gracias por jugar.")
-            break
+    const spinDuration = 2000 // 2 seconds
+    const spinInterval = 100 // Update every 100ms
 
-jugar_tragamonedas()
+    let spinsLeft = spinDuration / spinInterval
+    const spinTimer = setInterval(() => {
+      setReels(reels.map(() => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]))
+      spinsLeft--
+
+      if (spinsLeft <= 0) {
+        clearInterval(spinTimer)
+        const finalReels = SYMBOLS.map(() => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)])
+        setReels(finalReels)
+        checkWin(finalReels)
+        setIsSpinning(false)
+      }
+    }, spinInterval)
+  }
+
+  const checkWin = (newReels: string[]) => {
+    if (newReels[0] === newReels[1] && newReels[1] === newReels[2]) {
+      const winAmount = 50
+      setBalance(prev => prev + winAmount)
+      setMessage(`¡Ganaste ${winAmount} créditos!`)
+    } else if (newReels[0] === newReels[1] || newReels[1] === newReels[2] || newReels[0] === newReels[2]) {
+      const winAmount = 20
+      setBalance(prev => prev + winAmount)
+      setMessage(`¡Ganaste ${winAmount} créditos!`)
+    } else {
+      setMessage('Inténtalo de nuevo.')
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-purple-600 to-blue-600 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold">Tragamonedas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center gap-2 mb-4">
+            {reels.map((symbol, index) => (
+              <Reel key={index} symbol={symbol} />
+            ))}
+          </div>
+          <div className="text-center mb-4 text-xl font-semibold">Saldo: {balance} créditos</div>
+          <Button 
+            onClick={spin} 
+            className="w-full mb-4 text-lg font-bold" 
+            disabled={isSpinning || balance < 10}
+          >
+            {isSpinning ? 'Girando...' : 'Girar (10 créditos)'}
+          </Button>
+          <div className="text-center text-lg font-medium">{message}</div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
